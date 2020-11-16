@@ -25,11 +25,13 @@ args = vars(ap.parse_args())
 path = args['f'] + '/'
 ppath = args['f'] + '_data/'
 npath = args['f'] + '_processed/'
-
+cpath = args['f'] + '_cropped/'
 if not os.path.exists(npath):
     os.mkdir(npath)
 if not os.path.exists(ppath):
     os.mkdir(ppath)
+if not os.path.exists(cpath):
+    os.mkdir(cpath)
 sns.set(color_codes=True)
 
 
@@ -38,10 +40,16 @@ def CropImage(p, pp):
     for file in folder:
         img = cv2.imread(path + file)
         h, w, c = np.shape(img)
-        cuth = int(h * 0.15)
-        cutw = int(w * 0.15)
-        img = img[cuth:(h-cuth), cutw:(w-cutw)]
-        cv2.imwrite(pp+file, img)
+        ch = 500
+        cw = 500
+        ti = h // ch
+        tj = w // cw
+        for i in range(ti):
+            for j in range(tj):
+                cropped = img[i*ch:(i+1)*ch, j*cw:(j+1)*cw]
+                cname = file[:-4] + f'_{i}_{j}.jpg'
+                cv2.imwrite(pp+cname, cropped)
+
     print('done.')
 
 
@@ -73,9 +81,15 @@ def LeafSegmentation(path, lowThreshold, ratio, kernel_size):
         (h0, w0, c0) = np.shape(testimg)
         bimg = np.zeros((h0, w0), dtype=np.uint8)
         garea = 0
+        
+        # dynamic threshold
+        avg_gray = np.average(gray_h) * 0.8
+        # fixed threshold
+        # avg_gray = 50
+        
         for hi in range(h0):
             for wi in range(w0):
-                if gray_h[hi][wi] > 50:
+                if gray_h[hi][wi] > avg_gray:
                     bimg[hi][wi] = 255
                     garea += 1
         mean_garea += garea
@@ -118,19 +132,30 @@ def LeafSegmentation(path, lowThreshold, ratio, kernel_size):
 
 
 
-# CropImage(path, ppath)
-image_list, ae_list = LeafSegmentation(path, 50, 3, 3)
+CropImage(path, cpath)
+# image_list, ae_list = LeafSegmentation(path, 50, 3, 3)
 
-kmeans = KMeans(n_clusters=5, random_state=0).fit(ae_list)
-pickle.dump(kmeans, open('kmeans.pkl', 'wb'))
-labels = kmeans.labels_
+# kmeans = KMeans(n_clusters=5, random_state=0).fit(ae_list)
+# pickle.dump(kmeans, open('kmeans.pkl', 'wb'))
+# labels = kmeans.labels_
 
-with open(ppath + 'data.txt', 'a+')as f:
-    for i in range(len(image_list)):
-        f.write(image_list[i] + ',' + str(ae_list[i]) + ',' + str(labels[i]))
-        f.write('\n')
-f.close()
+# with open(ppath + 'data.txt', 'a+')as f:
+#     for i in range(len(image_list)):
+#         f.write(image_list[i] + ',' + str(ae_list[i]) + ',' + str(labels[i]))
+#         f.write('\n')
+# f.close()
 
 
+
+'''
+1. Why dynamic threshold? Is it better than a static one? Is there a third way?
+2. Since we've got the labelled data, kmeans is a bit simple now. I want to use 
+    SVM with RBF kernel. Any other suggestions (maybe neural net)?
+3. How to add more features? We now only have AE ratio feature.
+    [1] image <-- (AE ratio, feature a, feature b, ...)
+    [2] image <-- AE ratio <-- (Area: ExG, feature a, feature b, ...;
+                                Edge: Canny, feature c, feature d, ...)
+
+'''
 
 
