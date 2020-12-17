@@ -85,7 +85,7 @@ class TruthSeeker(Frame):
         print(root.winfo_screenwidth(), root.winfo_screenheight())
         sw = root.winfo_screenwidth()
         sh = root.winfo_screenheight()
-        self.canvas = Canvas(self, cursor="cross",width = sw-150,height =sh-150)
+        self.canvas = Canvas(self, cursor="cross",width = 600,height =600)
 
         self.sbarv=Scrollbar(self,orient=VERTICAL)
         self.sbarh=Scrollbar(self,orient=HORIZONTAL)
