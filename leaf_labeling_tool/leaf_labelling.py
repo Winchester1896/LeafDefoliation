@@ -74,7 +74,9 @@ class TruthSeeker(Frame):
      
         self.cancel = ttk.Button(self, text="Cancel",command = self.on_cancel) #retunss without saving line
         self.apply = ttk.Button(self, text="Apply",command = self.on_apply) #adds  a bb,value to line
-        self.finish = ttk.Button(self, text="Finish",command = self.on_finish) # returns line after processing this image
+        self.finish_text = StringVar()
+        self.finish_text.set('Next')
+        self.finish = ttk.Button(self, textvariable=self.finish_text ,command = self.on_finish) # returns line after processing this image
 
 
         self.grid(column=0, row=0, sticky=(N, S, E, W))
@@ -191,7 +193,8 @@ class TruthSeeker(Frame):
         dsf.close()
         self.image_index += 1
         self.line = ""
-        if  self.image_index < len(self.image_files):
+        if  self.image_index < len(self.image_files)-1:
+            
             self.line = self.image_files_directory + '/' + self.image_files[self.image_index]
             print(self.line)
             #create new canvas
@@ -201,6 +204,22 @@ class TruthSeeker(Frame):
             self.canvas.image = tk_im  # line added to fix bug in canvas widget
             self.canvas.create_image(0,0,anchor="nw",image=tk_im,tag = 'current_image')
             print('current image position',self.canvas.coords('current_image'))
+        elif self.image_index == len(self.image_files)-1:
+            self.finish_text.set('Finish')
+            self.line = self.image_files_directory + '/' + self.image_files[self.image_index]
+            print(self.line)
+            #create new canvas
+            self.canvas.delete("all")
+            self.im = PIL.Image.open(self.line)
+            tk_im = ImageTk.PhotoImage(self.im)
+            self.canvas.image = tk_im  # line added to fix bug in canvas widget
+            self.canvas.create_image(0,0,anchor="nw",image=tk_im,tag = 'current_image')
+            print('current image position',self.canvas.coords('current_image'))
+        else:
+            root.quit()
+            
+            
+        
             
     def on_clasification(self,event):
         print (self.clasificationvar.get())
@@ -218,13 +237,13 @@ class TruthSeeker(Frame):
         self.curY = self.canvas.canvasy(event.y)
 
         w, h = self.canvas.winfo_width(), self.canvas.winfo_height()
-        if event.x > 0.9*w:
+        if event.x > 0.98*w:
             self.canvas.xview_scroll(1, 'units') 
-        elif event.x < 0.1*w:
+        elif event.x < 0.02*w:
             self.canvas.xview_scroll(-1, 'units')
-        if event.y > 0.9*h:
+        if event.y > 0.98*h:
             self.canvas.yview_scroll(1, 'units') 
-        elif event.y < 0.1*h:
+        elif event.y < 0.02*h:
             self.canvas.yview_scroll(-1, 'units')
 
         # expand rectangle as you drag the mouse

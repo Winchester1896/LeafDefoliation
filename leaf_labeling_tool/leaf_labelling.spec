@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['leaf_labelling.py'],
-             pathex=['E:\\Zichen_Zhang_9325\\2020_Fall\\LeafDefoliation'],
+             pathex=['E:\\Zichen_Zhang_9325\\2020_Fall\\LeafDefoliation\\leaf_labeling_tool'],
              binaries=[],
              datas=[],
              hiddenimports=[],
